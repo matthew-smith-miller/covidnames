@@ -50,6 +50,8 @@ public with sharing class COVIDNamesGame {
             demoMode = true;
             playerNameInput = 'DemoPlayer';
             findPlayer();
+        } else {
+            demoMode = false;
         }
     }
     
@@ -229,43 +231,6 @@ public with sharing class COVIDNamesGame {
                     Game__c = :gameId
                 LIMIT 25];
     }
-    
-    /*public void drawNewGameCards() {
-        gameCards = new List<Game_Card__c>();
-        List<Decimal> randNums = new List<Decimal>();
-        Map<Decimal,Card__c> randNumsToCards = new Map<Decimal,Card__c>();
-        
-        if (session != null && session.Id != null && game != null && game.Id != null) {
-            Set<String> cardsUsedSet = new Set<String>();
-            if (session.Cards_Used__c != null) {
-                List<String> cardsUsed = session.Cards_Used__c.split(',');
-                cardsUsedSet.addAll(cardsUsed);
-            }
-            
-            List<Card__c> cardDeck = [SELECT
-                                        Id,
-                                        Name
-                                    FROM
-                                        Card__c
-                                    WHERE
-                                        Name NOT IN :cardsUsedSet];
-            
-            for(Card__c card : cardDeck) {
-                Decimal randNum = Math.random();
-                randNums.add(randNum);
-                randNumsToCards.put(randNum,card);
-            }
-            randNums.sort();
-            for (Integer i = 0; i < randNums.size(); i++) {
-                gameCards.add(new Game_Card__c(Game__c = game.Id, Name = randNumsToCards.get(randNums[i]).Name));
-                if (i == 24) {
-                    break;
-                }
-            } 
-            assignColors(gameCards);
-            insert gameCards;               
-        }
-    }*/
     
     public void drawNewGameCards() {
         gameCards = new List<Game_Card__c>();
