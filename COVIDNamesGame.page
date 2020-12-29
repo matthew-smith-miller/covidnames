@@ -4,8 +4,13 @@
         
         function refreshCards() {
             if (document.getElementById("game_state").value == "display_game") {
-                console.log("refreshing");
                 refreshAllObjects_Apex();
+            }
+        }
+        function disableButtons() {
+            if ({!demoMode}) {
+                document.getElementById("new_game_btn").disabled = true;
+                document.getElementById("leave_room_btn").disabled = true;
             }
         }
         function findPlayer() {
@@ -97,11 +102,9 @@
         }
         function populatePlayers() {
             clone_badges = document.getElementsByName("radio_badge_clone");
-            console.log(clone_badges);
             length = clone_badges.length
             if (clone_badges.length > 0) {
                 for (let i = 0; i < length; i++) {
-                    console.log("removing " + clone_badges[0]);
                     clone_badges[0].parentNode.removeChild(clone_badges[0]);
                 }
             }
@@ -725,34 +728,18 @@
                                 <h1 class="remain_blue">{!blueCardsRemaining}</h1><h1 class="remain_red">{!redCardsRemaining}</h1>
                             </div>
                         </div>
-                        <!--<button
-                            id="enter_spymaster_btn"
-                            type="button"
-                            class="sidebar_button ok enter_spymaster {!viewMode}"
-                            onclick="showPopup('enter_spymaster_popup','enter_spymaster_input')"
-                            style="{!IF(game.Id != NULL,'','display: none')}">
-                            Enter Spymaster Mode
-                        </button>
-                        <button
-                            type="button"
-                            class="sidebar_button nope exit_spymaster {!viewMode}"
-                            onclick="exitSpymasterMode()">
-                            Exit Spymaster Mode
-                        </button>-->
                         <button
                             id="new_game_btn"
                             type="button"
                             onclick="showPopup('new_game_popup')"
-                            class="sidebar_button new_game {!IF(demoMode, 'demo_disabled', '')}"
-                            disabled="{!demoMode}">
+                            class="sidebar_button new_game {!IF(demoMode, 'demo_disabled', '')}">
                             New Game
                         </button>
                         <button
                             id="leave_room_btn"
                             type="button"
                             onclick="showPopup('leave_room_popup')"
-                            class="sidebar_button nope {!IF(demoMode, 'demo_disabled', '')}"
-                            disabled="{!demoMode}">
+                            class="sidebar_button nope {!IF(demoMode, 'demo_disabled', '')}">
                             Leave Room
                         </button>
                     </div>
@@ -848,6 +835,9 @@
                     </div>
                 </div>
             </div>
+            <script>
+                disableButtons();
+            </script>
         </div>
     </apex:form>
 </apex:page>
