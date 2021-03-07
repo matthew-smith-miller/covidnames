@@ -1,0 +1,843 @@
+<apex:page controller="COVIDNamesGame" showHeader="false">
+    <script type="text/javascript">
+        refreshInterval = setInterval(refreshCards, 2000);                
+        
+        function refreshCards() {
+            if (document.getElementById("game_state").value == "display_game") {
+                refreshAllObjects_Apex();
+            }
+        }
+        function disableButtons() {
+            if ({!demoMode}) {
+                document.getElementById("new_game_btn").disabled = true;
+                document.getElementById("leave_room_btn").disabled = true;
+            }
+        }
+        function findPlayer() {
+            input = document.getElementById("find_player_name").value;
+            if (input != "") {
+                findPlayer_Apex(input);
+            } else {
+                alert("Please enter a name");
+            }
+        }
+        function createNewPlayer() {
+            input = document.getElementById("new_player_name").value;
+            if (input.includes(" ")) {
+                alert("No spaces are allowed in player names");
+            } else if (input == "") {
+                alert("Please enter a name");                
+            } else {
+                createNewPlayer_Apex(input);
+            }
+        }
+        function showPlayerResult(playerResult) {
+            if (playerResult != "Success") {
+                alert(playerResult);
+            }
+        }
+        function changeTeam(circle, clickedId, playerId) {
+            if (clickedId == playerId && {!!demoMode}) {
+                changeTeam_Apex();
+                if (circle.className.includes("red_team") == true) {
+                    circle.className = circle.className.replace("red_team","blue_team");
+                } else if (circle.className.includes("blue_team") == true) {
+                    circle.className = circle.className.replace("blue_team","red_team");
+                } else {
+                    circle.className += " blue_team";
+                }
+            }
+        }
+        function autotab(event, input) {
+            if (input.id.substring(5) != "1") {
+                if (event.keyCode == 8 && input.value.length == 0){
+                    document.getElementById("code_" + (parseInt(input.id.substring(5))-1).toString()).select();
+                }
+            }
+            if (input.id.substring(5) != "8") {
+                if (input.value.length == input.maxLength) {
+                    document.getElementById("code_" + (parseInt(input.id.substring(5))+1).toString()).select();
+                }
+            }
+            if (input.id.substring(5) == "8") {
+                if (input.value.length == input.maxLength) {
+                    searchSession();
+                }
+            }
+        }
+        function searchSession() {
+            code = "";
+            for (let i = 1; i < 9; i++) {
+                code += document.getElementById("code_" + i).value;
+                if (i == 4) {
+                    code += " ";
+                }
+            }
+            searchViaInterface_Apex(code);
+        }
+        function revealColor(card) {
+            console.log("in revealColor");
+            touchCard_Apex(card.name);
+            if (card.className.includes("Revealed") == false) {
+                card.className += " Revealed";
+            }
+            overlay = document.getElementById("card-overlay-"+card.name);
+            if (overlay.className.includes("Revealed") == false) {
+                overlay.className += " Revealed";
+            }
+            img = document.getElementById("card-img-"+card.name);
+            if (img.className.includes("Revealed") == false) {
+                img.className += " Revealed";
+            }
+            document.getElementById("card-name-"+card.name).style = "display:none";
+        }
+        function showPopup(popupId) {
+            document.getElementById(popupId).style="display:block";
+            if (popupId == "new_game_popup") {
+                populatePlayers();
+            }
+        }
+        function hidePopup(popupId) {
+            document.getElementById(popupId).style="display:none";
+        }
+        function populatePlayers() {
+            clone_badges = document.getElementsByName("radio_badge_clone");
+            length = clone_badges.length
+            if (clone_badges.length > 0) {
+                for (let i = 0; i < length; i++) {
+                    clone_badges[0].parentNode.removeChild(clone_badges[0]);
+                }
+            }
+            player_badges = document.getElementsByName("player_badge");
+            blue_radio_badge = document.getElementById("blue_radio_badge");
+            red_radio_badge = document.getElementById("red_radio_badge");
+            for (let i in player_badges) {
+                if (player_badges[i].className.includes("blue_team")) {
+                    new_badge = blue_radio_badge.cloneNode(true);
+                    new_badge.style="display:flex";
+                    new_badge.setAttribute("name","radio_badge_clone");
+                    new_badge.id += "_" + player_badges[i].id.replace("player_badge_","");
+                    new_badge.childNodes[5].innerHTML = player_badges[i].childNodes[1].innerHTML;
+                    new_badge.childNodes[1].value = player_badges[i].id.replace("player_badge_","");
+                    blue_radio_badge.parentNode.insertBefore(new_badge, blue_radio_badge);                  
+                }
+                if (player_badges[i].className.includes("red_team")) {
+                    new_badge = red_radio_badge.cloneNode(true);
+                    new_badge.style="display:flex";
+                    new_badge.setAttribute("name","radio_badge_clone");
+                    new_badge.id += "_" + player_badges[i].id.replace("player_badge_","");
+                    new_badge.childNodes[5].innerHTML = player_badges[i].childNodes[1].innerHTML;
+                    new_badge.childNodes[1].value = player_badges[i].id.replace("player_badge_","")
+                    red_radio_badge.parentNode.insertBefore(new_badge, red_radio_badge);
+                }
+            }
+        }
+        function createNewGame() {
+            blueValue = "";
+            redValue = "";
+            blueRadioButtons = document.getElementsByName("radio_blue_team");
+            redRadioButtons = document.getElementsByName("radio_red_team");
+            if (blueRadioButtons.length == 0) {
+                blueValue = "no_players";
+            }
+            if (redRadioButtons.length == 0) {
+                redValue = "no_players";
+            }
+            for (let i in blueRadioButtons) {
+                if (blueRadioButtons[i].checked) {
+                    blueValue = blueRadioButtons[i].value;
+                    break;
+                }
+            }
+            for (let i in redRadioButtons) {
+                if (redRadioButtons[i].checked) {
+                    redValue = redRadioButtons[i].value;
+                    break;
+                }
+            }
+            if (redValue != "" && blueValue != "") {
+                hidePopup("new_game_popup");
+                createNewGame_Apex(blueValue + "," + redValue);
+                for (let i in blueRadioButtons) {
+                    blueRadioButtons[i].checked = false;
+                }
+                for (let i in redRadioButtons) {
+                    redRadioButtons[i].checked = false;
+                }
+            } else {
+                alert("Please select a spymaster for both teams");
+            }  
+        }
+        function checkSpymasterCode(value) {
+            hidePopup("enter_spymaster_popup")
+            checkSpymasterCode_Apex(value);
+        }
+        function checkEnter(event, element) {
+            if (event.keyCode == 13) {
+                if (element.id == "enter_spymaster_input") {
+                    checkSpymasterCode(element.value);
+                } else if (element.id == "new_game_input") {
+                    createNewGame(element.value);
+                } else if (element.id == "find_player_name") {
+                    findPlayer();
+                } else if (element.id == "new_player_name") {
+                    createNewPlayer();
+                } else if (element.id == "image_set_code") {
+                    createNewSession(element.value);
+                }             
+            }
+        }
+        function showName(element) {
+            document.getElementById("card-name-"+element.id.replace("card-overlay-","")).style="display:block";
+        }
+        function hideName(element) {
+            document.getElementById("card-name-"+element.id.replace("card-overlay-","")).style="display:none";
+        }
+        function demo_SpymasterView() {
+            toggleSpymaster_Apex();
+        }
+        function demo_ResetCards() {
+            resetCards_Apex();
+        }
+        function demo_HomePage() {
+            window.open(
+                "https://covidnames-developer-edition.na111.force.com/covidnames/", "_blank");
+        }
+    </script>
+    <style>
+        :root {
+            --blue: #29B6F6;
+            --blue-light: #B3E5FC;
+            --red: #EF5350;
+            --red-light: #FFCDD2;
+            --bystander: #BCAAA4;
+            --bystander-light: #EFEBE9;
+            --assassin: #000000;
+            --assassin-light: #9E9E9E;
+            --khaki: #F6EADA;
+            --bone: #FFFFFF;
+            --elephant: #CFD8DC;
+            --rhino: #8d9396;
+            --cloud: #ECEFF1;
+            --raincloud: #b0cbf7;
+            --foliage: #4CAF50;
+            --moroccan-mint: #8fc98f;
+            --sage: #b6d4b6;
+            --alpine: #d3e8d3;
+            --scarlet: #B00020;
+            --ivory: #FFF8E1;
+            --aged-ivory: #FFE082;
+            --trans: transparent;
+        }
+        h1 {
+            margin-top:5px;
+            margin-bottom:10px;
+            font-size:16px;
+            font-family:Helvetica;
+        }
+        h1.demo_header {
+            color:var(--foliage)
+        }
+        p.header_style {
+            margin:5px;
+            font-size:16px;
+            font-family:Helvetica;
+            font-weight:bold;
+            max-width:450px;
+        }
+        img.logo_image {
+            height:200px;
+            width:200px;
+            display:block;
+            margin-left:auto;
+            margin-right:auto;
+            margin-bottom:15px;
+        }
+        img.card-image {
+            width:100%;
+            height:100%;
+            border-radius:5px;
+            position:absolute;
+            top:0;
+            left:0;
+            display:none;
+        }
+        img.card-image.Revealed {
+            display:block;
+        }
+        img.spymaster_image {
+            width:auto;
+            height:60%;
+            position:relative;
+            top:18%;
+        }
+        input {
+            margin:10px;
+        }
+        input.single_letter {
+            width:20px;
+            height:40px;
+            margin:0px;
+            margin-top:10px;
+            margin-left:5px;
+            font-size:20px;
+            text-align:center;
+            text-transform:uppercase;
+        }
+        span.code_spacer {
+            width:10px;
+        }
+        div.button-div {
+            height:18%;
+            width:18%;
+            position:relative;
+        }
+        div.demo-panel {
+            margin-top:20px;
+            background-color:var(--alpine);
+            padding: 12px;
+            border-radius:4px;
+        }
+        .cardDefault {
+            height:100%;
+            width:100%;
+            border-radius:5px;
+            border:0px;
+            padding:0px;
+            margin:0px;
+            cursor:pointer;
+            box-shadow: 0 1px 2px 0;
+            background:#FFFFFF; 
+            background-color:var(--khaki);  
+        }
+        .card-overlay {
+            border-radius:5px;
+            display:block;
+            height:100%;
+            width:100%;
+            position:absolute;
+            top:0;
+            left:0;
+            opacity:0;
+            pointer-events:none;
+        }
+        .card-overlay.Revealed {
+            opacity:0.7;
+            pointer-events:auto;            
+        }
+        .card-overlay.Revealed:hover {
+            opacity:0.9;
+        }
+        .card-overlay.Revealed.Blue-overlay {
+            background-color:var(--blue);
+        }
+        .card-overlay.Revealed.Red-overlay {
+            background-color:var(--red);
+        }
+        .card-overlay.Revealed.Bystander-overlay {
+            background-color:var(--bystander);
+        }
+        .card-overlay.Revealed.Assassin-overlay {
+            background-color:var(--assassin);
+        }
+        span.card-name {
+            display:block;
+            position:absolute;
+            top:0;
+            width:100%;
+            height:20%;
+            margin-top:40%;
+            margin-bottom:40%;
+            text-align:center;
+            font-size:13px;
+            font-weight:bold;
+            text-transform:uppercase;
+            pointer-events:none;
+        }
+        span.card-name.Revealed {
+            display:none;
+            color:var(--bone);
+            pointer-events:none;
+        }
+        .header {
+            height:50px;
+            background-color:black;
+            display:none;
+        }
+        .game_container {
+            width:100%;
+            height:100%;
+            align:center;
+        }
+        .sidebar_board {
+            display:flex;
+        }
+        .sidebar {
+            height:530px;
+            padding:20px;
+            margin-right:20px;
+            background-color:var(--cloud);
+        }
+        .sidebar_content {
+            height:100%;
+        }
+        .sidebar_content.intro_screen {
+            display:none;
+        }
+        .sidebar_content.logged_in {
+            display:none;
+        }
+        button.landing_button {
+            height:35px;
+            width:90px;
+            border-radius:10px;
+            border:0px;
+            padding:0px;
+            margin-left:15px;
+            text-align:center;
+            font-size:15px;
+            box-shadow: 0 1px 2px 0;
+            background:var(--bone); 
+            background-color:var(--elephant);
+        }
+        button.sidebar_button {
+            display:block;
+            height:55px;
+            width:100px;
+            border-radius:10px;
+            border:0px;
+            padding:0px;
+            margin-left:auto;
+            margin-right:auto;
+            margin-top:10px;
+            text-align:center;
+            font-size:15px;
+            box-shadow: 0px 1px 2px 0px #333333;
+            background:#FFFFFF; 
+            background-color:var(--raincloud);
+        }
+        button.popup_button {
+            height:45px;
+            width:120px;
+            border-radius:5px;
+            border:0px;
+            padding:0px;
+            margin-left:auto;
+            margin-right:auto;
+            margin-top:10px;
+            margin-bottom:10px;
+            text-align:center;
+            font-size:15px;
+            box-shadow: 0px 1px 2px 0px #333333;
+            background:#FFFFFF; 
+            background-color:#CFD8DC;
+        }
+        button.ok {
+            background-color:var(--foliage);
+        }
+        button.nope {
+            background-color:var(--scarlet);
+            color:var(--bone);
+        }
+        button.new_game {
+            margin-top:50px;
+        }
+        button.demo_disabled {
+            background-color:var(--elephant);
+            color:var(--rhino);
+            font-style:italic;
+            disabled:true;
+        }
+        button.demo_button {
+            height:35px;
+            width:65px;
+            border-radius:10px;
+            border:0px;
+            padding:0px;
+            margin-left:auto;
+            margin-right:5px;
+            text-align:center;
+            font-size:11px;
+            box-shadow: 0 1px 2px 0;
+            background:#FFFFFF; 
+            background-color:var(--foliage);
+        }
+        button.btn_moroccan_mint {
+            background-color:var(--moroccan-mint);
+        }
+        button.btn_sage {
+            background-color:var(--sage);
+        }
+        .sidebar_info {
+            width:70%;
+            height:6%;
+            border-radius:3px;
+            text-align:center;
+            font-size:13px;
+            margin-left:auto;
+            margin-right:auto;
+            padding:auto;
+            margin-top:10px;
+            background-color:var(--elephant);
+            display:flex;
+        }
+        .sidebar_info.Blue {
+            background-color:var(--blue);
+        }
+        .sidebar_info.Red {
+            background-color:var(--red);
+        }
+        .cards_remaining {
+            width:60%;
+            margin-left:auto;
+            margin-right:auto;
+            display:flex;
+        }
+        .enter_spymaster.spymaster {
+            display:none;
+        }
+        .exit_spymaster.player {
+            display:none;
+        }
+        .popup {
+            display:none;
+            /*width:400px;*/
+            background-color:var(--cloud);
+            border-radius:5px;
+            border:3px solid #CFD8DC;
+            box-shadow: 0 3px 5px 0;
+            position:fixed;
+            margin-left:300px;
+            margin-top:180px;
+            z-index:999;
+        }     
+        .horizontal {
+            display:flex;
+            justify-content:space-between;
+            height:100%
+        }      
+        .remain_blue {
+            color:var(--blue);
+            width:50%;
+        }
+        .remain_red {
+            color:var(--red);
+            width:50%;
+        }
+        .board.display_game {
+            width:520px;
+            height:520px;
+            display:flex;
+            flex-wrap:wrap;
+            justify-content:space-between;
+            margin-top:10px;
+        }
+        .board.intro_screen {
+            display:none;
+        }
+        .board.logged_in {
+            display:none;
+        }
+        .login {
+            width:560px;
+            height:560px;
+            margin-top:20px;
+        }
+        .login.logged_in {
+            display:none;
+        }
+        .login.display_game {
+            display:none;
+        }
+        .landing {
+            width:560px;
+            height:560px;
+            margin-top:20px;  
+        }
+        .landing.intro_screen {
+            display:none;    
+        }
+        .landing.display_game {
+            display:none;    
+        }
+        .player_sidebar {
+            height:530px;
+            margin-left:20px;
+            padding:20px;
+            background-color:var(--cloud);
+        }
+        .player_sidebar.intro_screen {
+            display:none;
+        }
+        .player_sidebar.logged_in {
+            display:none;
+        }
+        .player_badge {
+            position:relative;
+            display:flex;
+            min-width:175px;
+            height: 30px;
+            border-radius:5px;
+            box-shadow: 0 1px 2px 0;
+            background-color:var(--ivory);
+            margin-bottom:5px;
+        }
+        .player_badge.list {
+            background-color:var(--trans);
+            margin-left:10px;
+        }
+        .player_color_circle {
+            display:block;
+            width:20px;
+            height:20px;
+            border-radius:50%;
+            background-color:var(--elephant);
+            margin: 5px;
+        }
+        .player_color_circle.blue_team {
+            background-color:var(--blue);
+        }
+        .player_color_circle.red_team {
+            background-color:var(--red);
+        }
+        button.Blue.spymaster {
+            background-color:var(--blue-light);
+        }
+        button.Red.spymaster {
+            background-color:var(--red-light);
+        }
+        button.Bystander.spymaster {
+            background-color:var(--bystander-light);
+        }
+        button.Assassin.spymaster {
+            /*border: 3px solid var(--assassin);
+            background-image:repeating-linear-gradient( -67.5deg, var(--assassin), var(--assassin) 0.15em, var(--khaki) 0.15em, var(--khaki) 0.4em);*/
+            background-color:var(--assassin-light);
+        }
+        button.Revealed {
+            background-size:100% 100%;
+            pointer-events:none;
+        }
+        button.Red.Revealed {
+            background-color:var(--red);
+        }
+        button.Blue.Revealed {
+            background-color:var(--blue);
+        }
+        button.Bystander.Revealed {
+            background-color:var(--bystander);
+        }
+        button.Assassin.Revealed {
+            background-color:var(--assassin);
+        }
+
+    </style>
+    <!--                            -->
+    <!--            POPUPS          -->
+    <!--                            -->
+    <div class="popup" id="new_game_popup">
+        <p class="header_style">Select a spymaster for each team to start a new game. You will not be able to change spymasters, so make sure all players have joined this room before you begin.</p><br/><br/>
+        <div class="horizontal">
+            <div>
+                <div name="radio_badge" id="blue_radio_badge" class="player_badge list" style="display:none">
+                    <input type="radio" name="radio_red_team" value=""/>
+                    <div class="player_color_circle blue_team"/>
+                    <h1></h1>
+                </div>
+            </div>
+            <div>
+                <div name="radio_badge" id="red_radio_badge" class="player_badge list" style="display:none">
+                    <input type="radio" name="radio_blue_team" value=""/>
+                    <div class="player_color_circle red_team"/>
+                    <h1></h1>
+                </div>
+            </div>
+        </div>
+        <div class="horizontal">
+            <button type="button" class="popup_button ok" onclick="createNewGame()">
+                OK
+            </button>
+            <button type="button" class="popup_button cancel" onclick="hidePopup('new_game_popup')">
+                Cancel
+            </button>
+            
+        </div>
+    </div>
+    <!--    LEAVE ROOM   -->
+    <div class="popup" id="leave_room_popup">
+        <h1>Are you sure you want to leave this room?</h1>
+        <div class="horizontal">
+            <button type="button" class="popup_button nope" onclick="leaveRoom_Apex(), hidePopup('leave_room_popup')">
+                Leave
+            </button>
+            <button type="button" class="popup_button cancel" onclick="hidePopup('leave_room_popup')">
+                Cancel
+            </button>
+        </div>
+    </div>
+    <!--                            -->
+    <!--            FORM            -->
+    <!--                            -->
+    <apex:form id="frm" style="align:center">
+        <input type="hidden" id="game_state" value="{!gameState}"/>    
+        <!--                            -->
+        <!--        ACTION FUNCTIONS    -->
+        <!--                            -->
+        <apex:actionFunction name="touchCard_Apex" action="{!touchCard}" rerender="frm">
+            <apex:param name="cardId" assignTo="{!touchedCardId}" value=""/>
+        </apex:actionFunction>
+        <apex:actionFunction name="refreshAllObjects_Apex" action="{!refreshScreen}" reRender="frm"/>
+        <apex:actionFunction name="createNewGame_Apex" action="{!createNewGame}" reRender="frm">
+            <apex:param name="newGameCode" assignTo="{!newGameCode}" value=""/>
+        </apex:actionFunction>
+        <apex:actionFunction name="checkSpymasterCode_Apex" action="{!checkSpymasterCode}" rerender="frm">
+            <apex:param name="enteredCode" assignTo="{!enteredCode}" value=""/>
+        </apex:actionFunction>
+        <apex:actionFunction name="exitSpymasterMode" action="{!exitSpymasterMode}" rerender="frm"/>
+        <apex:actionFunction name="searchViaInterface_Apex" action="{!searchViaInterface}" rerender="frm">
+            <apex:param name="inputSessionName" assignTo="{!inputSessionName}" value=""/>
+        </apex:actionFunction>
+        <apex:actionFunction name="createNewSession" action="{!createNewSession}" rerender="frm">
+            <apex:param name="imageSetCode" assignTo="{!imageSetCode}" value=""/>
+        </apex:actionFunction>
+        <apex:actionFunction name="createNewPlayer_Apex" action="{!createNewPlayer}" rerender="frm" oncomplete="showPlayerResult('{!playerResult}')">
+            <apex:param name="newPlayerName" assignTo="{!playerNameInput}" value=""/>
+        </apex:actionFunction>
+        <apex:actionFunction name="findPlayer_Apex" action="{!findPlayer}" rerender="frm" oncomplete="showPlayerResult('{!playerResult}')">
+            <apex:param name="findPlayerName" assignTo="{!playerNameInput}" value=""/>
+        </apex:actionFunction>
+        <apex:actionFunction name="changeTeam_Apex" action="{!changeTeam}" rerender="frm"/>
+        <apex:actionFunction name="leaveRoom_Apex" action="{!leaveRoom}" rerender="frm"/>
+        <apex:actionFunction name="toggleSpymaster_Apex" action="{!toggleSpymaster}" rerender="frm"/>
+        <apex:actionFunction name="resetCards_Apex" action="{!resetCards}" rerender="frm"/>
+  
+        <div
+            id="game_container"
+            class="game_container">
+            <div class="header"/>
+            <div class="sidebar_board">
+                <div class="sidebar">
+                    <apex:image styleClass="logo_image" url="{!$Resource.COVIDNamesLogo}"/>
+                    <div class="sidebar_content {!gameState}">
+                        <h1>Room code:&nbsp;</h1><h1 style="text-transform:uppercase">{!session.Code__c}</h1>
+                        <div class="sidebar_info {!game.Color__c}" style="display:{!IF(game.Id != NULL,'flex','none')}">
+                            <h1 style="text-align:center; width:100%">{!Game.Color__c} goes first</h1>
+                        </div>
+                        <div class="sidebar_info" style="display:{!IF(game.Id != NULL,'flex','none')}">
+                            <div class="cards_remaining">
+                                <h1 class="remain_blue">{!blueCardsRemaining}</h1><h1 class="remain_red">{!redCardsRemaining}</h1>
+                            </div>
+                        </div>
+                        <button
+                            id="new_game_btn"
+                            type="button"
+                            onclick="showPopup('new_game_popup')"
+                            class="sidebar_button new_game {!IF(demoMode, 'demo_disabled', '')}">
+                            New Game
+                        </button>
+                        <button
+                            id="leave_room_btn"
+                            type="button"
+                            onclick="showPopup('leave_room_popup')"
+                            class="sidebar_button nope {!IF(demoMode, 'demo_disabled', '')}">
+                            Leave Room
+                        </button>
+                    </div>
+                </div>
+                <div class="board {!gameState}">
+                    <apex:repeat id="card_repeat" value="{!gameCards}" var="card">
+                        <div class="button-div">
+                        <button
+                            type="button"
+                            class="cardDefault {!card.Assigned_Color__c} {!card.Revealed__c} {!viewMode}"
+                            name="{!card.Id}"
+                            onclick="revealColor(this)"/>
+                        <img
+                            id="card-img-{!card.Id}"
+                            src="{!IF(card.Image__c != null, URLFOR($Resource[card.Image__c]),"")}"
+                            alt="{!card.Image__c}"
+                            class="card-image {!card.Revealed__c}"/>
+                        <span
+                            id="card-overlay-{!card.Id}"
+                            class="card-overlay {!card.Revealed__c} {!card.Assigned_Color__c}-overlay"
+                            onmouseenter="{!IF(card.Revealed__c == "Revealed","showName(this)","")}"
+                            onmouseleave="{!IF(card.Revealed__c == "Revealed","hideName(this)","")}">
+                        </span>
+                        <span
+                            id="card-name-{!card.Id}"
+                            class="card-name {!card.Revealed__c}">
+                            {!card.Name}
+                        </span>
+                        </div>
+                    </apex:repeat>
+                </div>
+                <div class="login {!gameState}">
+                    <h1>Hello, welcome to COVIDNames. Please go wash your hands!</h1><br/><br/><br/>
+                    <h1>Enter an existing player name:</h1><input type="text" id="find_player_name" onkeyup="checkEnter(event, this)" onkeydown="return (event.keyCode!=13);"/>
+                    <button type="button" id="find_player_button" class="landing_button" onclick="findPlayer()">Search</button><br/><br/><br/>
+                    <h1>Or, create a new player:</h1><input type="text" id="new_player_name" onkeyup="checkEnter(event, this)" onkeydown="return (event.keyCode!=13);"/>
+                    <button type="button" id="new_player_button" class="landing_button" onclick="createNewPlayer()">Create</button><br/><br/><br/>
+                    <script>
+                        document.getElementById("find_player_name").select();
+                    </script>
+                </div>
+                <div class="landing {!gameState}">                    
+                    <h1>Join a room (the code will be two random four-letter words):</h1><br/>
+                    <input id="code_1" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
+                    <input id="code_2" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
+                    <input id="code_3" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
+                    <input id="code_4" maxlength="1" class="single_letter" onkeyup="autotab(event, this)" style="margin-right:10px"/>
+                    <input id="code_5" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
+                    <input id="code_6" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
+                    <input id="code_7" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
+                    <input id="code_8" maxlength="1" class="single_letter" onkeyup="autotab(event, this)" style="margin-right:10px"/>
+                    
+                    <button type="button" id="search_button" class="landing_button" onclick="searchSession()" style="margin-bottom:70px">Search</button><br/>
+                    
+                    <h1>Or, create a new room:</h1>
+                    <button type="button" class="landing_button" onclick="createNewSession(document.getElementById('image_set_code').value)" style="margin-bottom:10px">New Room</button><br/>
+                    
+                    <h1>For custom images, enter code here:</h1>
+                    <input type="text" id="image_set_code" onkeyup="checkEnter(event, this)" onkeydown="return (event.keyCode!=13);"/>
+                    
+                    <script>
+                        document.getElementById("code_1").select();
+                    </script>
+                </div>
+                <!--Player panel-->
+                <div id="player_sidebar" class="player_sidebar {!gameState}">
+                    <h1 style="margin-bottom:6px">Players:</h1><br/>
+                    <p class="header_style" style="font-style:italic; max-width:200px; font-size:12px; margin-bottom:20px; {!IF(demoMode, 'display:none','')}">
+                    You are randomly assigned to a team when you join a room.
+                    Click the colored circle next to your name to switch teams.</p>
+                    <apex:repeat value="{!session.Players__r}" var="player_var">
+                        <div
+                            id="player_badge_{!player_var.Id}"
+                            class="player_badge {!player_var.Team__c}"
+                            name="player_badge"
+                            style="{!IF(player_var.Id == player.Id, 'background-color: var(--aged-ivory)','')}">
+                            
+                            <div id="circle_{!player_var.Id}" class="player_color_circle {!player_var.Team__c}" onclick="changeTeam(this, '{!player_var.Id}', '{!player.Id}')"/>
+                            <h1>{!player_var.Name}</h1>
+                            <img class="spymaster_image" style="{!IF(player_var.isSpymaster__c = true,'display:auto','display:none')}" src="{!$Resource.spymaster}"/>
+                        </div>
+                    </apex:repeat>
+                    <div class="demo-panel" style="{!IF(demoMode, 'display:block', 'display:none')}">
+                        <h1 class="demo_header">Demo Mode</h1><br/>
+                        <p class="header_style" style="font-style:italic; max-width:200px; font-size:12px; margin-bottom:10px;">
+                            Created by Matt Miller during lockdown before <a href="https://codenames.game/" target="_blank">the real game</a> had an online version. Feel free to click on cards as you please. <br/><br/>Contact: matthew dot smith dot miller at gmail.
+                        </p>
+                        <button type="button" id="demo_spymaster_button" class="demo_button" onclick="demo_SpymasterView()">Spymaster<br/>On/Off</button>
+                        <button type="button" id="demo_reset_button" class="demo_button btn_moroccan_mint" onclick="demo_ResetCards()">Reset<br/>Cards</button>
+                        <button type="button" id="demo_home_button" class="demo_button btn_sage" onclick="demo_HomePage()">Home<br/>Page</button><br/><br/>
+                        Code: <a href="https://github.com/matthew-smith-miller/covidnames" target="_blank">GitHub</a>
+                        
+                    </div>
+                </div>
+            </div>
+            <script>
+                disableButtons();
+            </script>
+        </div>
+    </apex:form>
+</apex:page>
