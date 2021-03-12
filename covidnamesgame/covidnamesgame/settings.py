@@ -38,6 +38,9 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
 
 
+DEFAULT_USER_PASSWORD = '@SkylarkTrivia2021!'
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -48,6 +51,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'debug_toolbar',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -58,6 +63,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'covidnamesgame.urls'
