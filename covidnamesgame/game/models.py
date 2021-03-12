@@ -23,6 +23,7 @@ class Game(models.Model):
     )
     is_active = models.BooleanField(default=True)
     color = models.CharField(max_length=1, choices=COLOR_CHOICES)
+    session = models.ForeignKey('Session', related_name='games', on_delete=models.CASCADE)
 
     def count_cards_remaining(self):
         blue_cards_remaining = 0
@@ -55,7 +56,7 @@ class Player(models.Model):
     name = models.CharField(max_length=40)
     color = models.CharField(max_length=1, choices=COLOR_CHOICES)
     is_spymaster = models.BooleanField(default=False)
-    session = models.ForeignKey('Session', on_delete=models.CASCADE)
+    session = models.ForeignKey('Session', related_name='players', null=True, on_delete=models.SET_NULL)
 
 
 class Configuration(models.Model):

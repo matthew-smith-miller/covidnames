@@ -2,212 +2,244 @@
 {% load static %}
 
 {% block body %}
-  <div class="popup" id="new_game_popup">
-  <p class="header_style">Select a spymaster for each team to start a new game. You will not be able to change spymasters, so make sure all players have joined this room before you begin.</p><br/><br/>
-  <div class="horizontal">
-    <div>
-      <div name="radio_badge" id="blue_radio_badge" class="player_badge list" style="display:none">
-        <input type="radio" name="radio_red_team" value=""/>
-        <div class="player_color_circle blue_team">
-          <h1></h1>
-        </div>
-      </div>
-      <div>
-        <div name="radio_badge" id="red_radio_badge" class="player_badge list" style="display:none">
-          <input type="radio" name="radio_blue_team" value=""/>
-          <div class="player_color_circle red_team">
-            <h1></h1>
-          </div>
-        </div>
-      </div>
-      <div class="horizontal">
-        <button type="button" class="popup_button ok" onclick="createNewGame()">
-          OK
-        </button>
-        <button type="button" class="popup_button cancel" onclick="hidePopup('new_game_popup')">
-          Cancel
-        </button>
-
-      </div>
-    </div>
-    <!--    LEAVE ROOM   -->
-    <div class="popup" id="leave_room_popup">
-      <h1>Are you sure you want to leave this room?</h1>
-      <div class="horizontal">
-        <button type="button" class="popup_button nope" onclick="leaveRoom_Apex(), hidePopup('leave_room_popup')">
-          Leave
-        </button>
-        <button type="button" class="popup_button cancel" onclick="hidePopup('leave_room_popup')">
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-  </div>
-  <!--                            -->
-  <!--            FORM            -->
-  <!--                            -->
-  <!--<apex:form id="frm" style="align:center">-->
-  <!--  <input type="hidden" id="game_state" value="{!gameState}"/>-->
-  <!--  &lt;!&ndash;                            &ndash;&gt;-->
-  <!--  &lt;!&ndash;        ACTION FUNCTIONS    &ndash;&gt;-->
-  <!--  &lt;!&ndash;                            &ndash;&gt;-->
-  <!--  <apex:actionFunction name="touchCard_Apex" action="{!touchCard}" rerender="frm">-->
-  <!--    <apex:param name="cardId" assignTo="{!touchedCardId}" value=""/>-->
-  <!--  </apex:actionFunction>-->
-  <!--  <apex:actionFunction name="refreshAllObjects_Apex" action="{!refreshScreen}" reRender="frm"/>-->
-  <!--  <apex:actionFunction name="createNewGame_Apex" action="{!createNewGame}" reRender="frm">-->
-  <!--    <apex:param name="newGameCode" assignTo="{!newGameCode}" value=""/>-->
-  <!--  </apex:actionFunction>-->
-  <!--  <apex:actionFunction name="checkSpymasterCode_Apex" action="{!checkSpymasterCode}" rerender="frm">-->
-  <!--    <apex:param name="enteredCode" assignTo="{!enteredCode}" value=""/>-->
-  <!--  </apex:actionFunction>-->
-  <!--  <apex:actionFunction name="exitSpymasterMode" action="{!exitSpymasterMode}" rerender="frm"/>-->
-  <!--  <apex:actionFunction name="searchViaInterface_Apex" action="{!searchViaInterface}" rerender="frm">-->
-  <!--    <apex:param name="inputSessionName" assignTo="{!inputSessionName}" value=""/>-->
-  <!--  </apex:actionFunction>-->
-  <!--  <apex:actionFunction name="createNewSession" action="{!createNewSession}" rerender="frm">-->
-  <!--    <apex:param name="imageSetCode" assignTo="{!imageSetCode}" value=""/>-->
-  <!--  </apex:actionFunction>-->
-  <!--  <apex:actionFunction name="createNewPlayer_Apex" action="{!createNewPlayer}" rerender="frm" oncomplete="showPlayerResult('{!playerResult}')">-->
-  <!--    <apex:param name="newPlayerName" assignTo="{!playerNameInput}" value=""/>-->
-  <!--  </apex:actionFunction>-->
-  <!--  <apex:actionFunction name="findPlayer_Apex" action="{!findPlayer}" rerender="frm" oncomplete="showPlayerResult('{!playerResult}')">-->
-  <!--    <apex:param name="findPlayerName" assignTo="{!playerNameInput}" value=""/>-->
-  <!--  </apex:actionFunction>-->
-  <!--  <apex:actionFunction name="changeTeam_Apex" action="{!changeTeam}" rerender="frm"/>-->
-  <!--  <apex:actionFunction name="leaveRoom_Apex" action="{!leaveRoom}" rerender="frm"/>-->
-  <!--  <apex:actionFunction name="toggleSpymaster_Apex" action="{!toggleSpymaster}" rerender="frm"/>-->
-  <!--  <apex:actionFunction name="resetCards_Apex" action="{!resetCards}" rerender="frm"/>-->
-
-  <div id="game_container" class="game_container">
-    <div class="header">
-      <div class="sidebar_board">
-        <div class="sidebar">
-          {#  <image styleClass="logo_image" url="{!$Resource.COVIDNamesLogo}"></image> #}
-            <div class="sidebar_content {!gameState}">
-              <h1>Room code:&nbsp;</h1><h1 style="text-transform:uppercase">{!session.Code__c}</h1>
-              <div class="sidebar_info {!game.Color__c}" style="{# display:{!IF(game.Id != NULL,'flex','none')} #}">
-                <h1 style="text-align:center; width:100%">{!Game.Color__c} goes first</h1>
-              </div>
-              <div class="sidebar_info" style="{# display:{!IF(game.Id != NULL,'flex','none')} #}">
-                <div class="cards_remaining">
-                  <h1 class="remain_blue">{!blueCardsRemaining}</h1><h1 class="remain_red">{!redCardsRemaining}</h1>
+    <div class="popup" id="new_game_popup">
+        <p class="header_style">Select a spymaster for each team to start a new game. You will not be able to change
+            spymasters, so make sure all players have joined this room before you begin.</p><br/><br/>
+        <div class="horizontal">
+            <div>
+                <div name="radio_badge" id="blue_radio_badge" class="player_badge list" style="display:none">
+                    <input type="radio" name="radio_red_team" value=""/>
+                    <div class="player_color_circle blue_team">
+                        <h1></h1>
+                    </div>
                 </div>
-              </div>
-              <button
-                      id="new_game_btn"
-                      type="button"
-                      onclick="showPopup('new_game_popup')"
-                      class="sidebar_button new_game {!IF(demoMode, 'demo_disabled', '')}">
-                New Game
-              </button>
-              <button
-                      id="leave_room_btn"
-                      type="button"
-                      onclick="showPopup('leave_room_popup')"
-                      class="sidebar_button nope {!IF(demoMode, 'demo_disabled', '')}">
-                Leave Room
-              </button>
+                <div>
+                    <div name="radio_badge" id="red_radio_badge" class="player_badge list" style="display:none">
+                        <input type="radio" name="radio_blue_team" value=""/>
+                        <div class="player_color_circle red_team">
+                            <h1></h1>
+                        </div>
+                    </div>
+                </div>
+                <div class="horizontal">
+                    <button type="button" class="popup_button ok" onclick="createNewGame()">
+                        OK
+                    </button>
+                    <button type="button" class="popup_button cancel" onclick="hidePopup('new_game_popup')">
+                        Cancel
+                    </button>
+
+                </div>
+            </div>
+            <!--    LEAVE ROOM   -->
+            <div class="popup" id="leave_room_popup">
+                <h1>Are you sure you want to leave this room?</h1>
+                <div class="horizontal">
+                    <button type="button" class="popup_button nope"
+                            onclick="leaveRoom_Apex(), hidePopup('leave_room_popup')">
+                        Leave
+                    </button>
+                    <button type="button" class="popup_button cancel" onclick="hidePopup('leave_room_popup')">
+                        Cancel
+                    </button>
+                </div>
             </div>
         </div>
-        <div class="board {!gameState}">
-          {# <:repeat id="card_repeat" value="{!gameCards}" var="card"> #}
-          <div class="button-div">
-            <button
-                    type="button"
-                    class="cardDefault {!card.Assigned_Color__c} {!card.Revealed__c} {!viewMode}"
-                    name="{!card.Id}"
-                    onclick="revealColor(this)"></button>
-              <img
-                      id="card-img-{!card.Id}"
-                      src="{# {!IF(card.Image__c != null, URLFOR($Resource[card.Image__c]),"")} #}"
-                      alt="{!card.Image__c}"
-                      class="card-image {!card.Revealed__c}"/>
-              <span
-                      id="card-overlay-{!card.Id}"
-                      class="card-overlay {!card.Revealed__c} {!card.Assigned_Color__c}-overlay"
-                      onmouseenter="{# {!IF(card.Revealed__c == "Revealed","showName(this)","")} #}"
-                      onmouseleave="{# {!IF(card.Revealed__c == "Revealed","hideName(this)","")} #}">
-              </span>
-              <span
-                  id="card-name-{!card.Id}"
-                  class="card-name {!card.Revealed__c}">
-                  {!card.Name}
-              </span>
-          </div>
-          {# </:repeat>  #}
-        </div>
-        <div class="login {!gameState}">
-          <h1>Hello, welcome to COVIDNames. Please go wash your hands!</h1><br/><br/><br/>
-          <h1>Enter an existing player name:</h1><input type="text" id="find_player_name" onkeyup="checkEnter(event, this)" onkeydown="return (event.keyCode!=13);"/>
-          <button type="button" id="find_player_button" class="landing_button" onclick="findPlayer()">Search</button><br/><br/><br/>
-          <h1>Or, create a new player:</h1><input type="text" id="new_player_name" onkeyup="checkEnter(event, this)" onkeydown="return (event.keyCode!=13);"/>
-          <button type="button" id="new_player_button" class="landing_button" onclick="createNewPlayer()">Create</button><br/><br/><br/>
-          <script>
-              document.getElementById("find_player_name").select();
-          </script>
-        </div>
-        <div class="landing {!gameState}">
-          <h1>Join a room (the code will be two random four-letter words):</h1><br/>
-          <input id="code_1" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
-          <input id="code_2" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
-          <input id="code_3" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
-          <input id="code_4" maxlength="1" class="single_letter" onkeyup="autotab(event, this)" style="margin-right:10px"/>
-          <input id="code_5" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
-          <input id="code_6" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
-          <input id="code_7" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
-          <input id="code_8" maxlength="1" class="single_letter" onkeyup="autotab(event, this)" style="margin-right:10px"/>
-
-          <button type="button" id="search_button" class="landing_button" onclick="searchSession()" style="margin-bottom:70px">Search</button><br/>
-
-          <h1>Or, create a new room:</h1>
-          <button type="button" class="landing_button" onclick="createNewSession(document.getElementById('image_set_code').value)" style="margin-bottom:10px">New Room</button><br/>
-
-          <h1>For custom images, enter code here:</h1>
-          <input type="text" id="image_set_code" onkeyup="checkEnter(event, this)" onkeydown="return (event.keyCode!=13);"/>
-
-          <script>
-              document.getElementById("code_1").select();
-          </script>
-        </div>
-        <!--Player panel-->
-        <div id="player_sidebar" class="player_sidebar {!gameState}">
-          <h1 style="margin-bottom:6px">Players:</h1><br/>
-          <p class="header_style" style="font-style:italic; max-width:200px; font-size:12px; margin-bottom:20px;{# {!IF(demoMode, 'display:none','')} #}">
-            You are randomly assigned to a team when you join a room.
-            Click the colored circle next to your name to switch teams.</p>
-          <!--        <apex:repeat value="{!session.Players__r}" var="player_var">-->
-          <!--          <div-->
-          <!--                  id="player_badge_{!player_var.Id}"-->
-          <!--                  class="player_badge {!player_var.Team__c}"-->
-          <!--                  name="player_badge"-->
-          <!--                  style="{!IF(player_var.Id == player.Id, 'background-color: var(&#45;&#45;aged-ivory)','')}">-->
-
-          <!--            <div id="circle_{!player_var.Id}" class="player_color_circle {!player_var.Team__c}" onclick="changeTeam(this, '{!player_var.Id}', '{!player.Id}')"/>-->
-          <!--            <h1>{!player_var.Name}</h1>-->
-          <!--            <img class="spymaster_image" style="{!IF(player_var.isSpymaster__c = true,'display:auto','display:none')}" src="{!$Resource.spymaster}"/>-->
-          <!--          </div>-->
-          <!--        </apex:repeat>-->
-          <div class="demo-panel" style="{# {!IF(demoMode, 'display:block', 'display:none')} #}">
-            <h1 class="demo_header">Demo Mode</h1><br/>
-            <p class="header_style" style="font-style:italic; max-width:200px; font-size:12px; margin-bottom:10px;">
-              Created by Matt Miller during lockdown before <a href="https://codenames.game/" target="_blank">the real game</a> had an online version. Feel free to click on cards as you please. <br/><br/>Contact: matthew dot smith dot miller at gmail.
-            </p>
-            <button type="button" id="demo_spymaster_button" class="demo_button" onclick="demo_SpymasterView()">Spymaster<br/>On/Off</button>
-            <button type="button" id="demo_reset_button" class="demo_button btn_moroccan_mint" onclick="demo_ResetCards()">Reset<br/>Cards</button>
-            <button type="button" id="demo_home_button" class="demo_button btn_sage" onclick="demo_HomePage()">Home<br/>Page</button><br/><br/>
-            Code: <a href="https://github.com/matthew-smith-miller/covidnames" target="_blank">GitHub</a>
-
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
+    <!--                            -->
+    <!--            FORM            -->
+    <!--                            -->
+    <!--<apex:form id="frm" style="align:center">-->
+    <!--  <input type="hidden" id="game_state" value="{!gameState}"/>-->
+    <!--  &lt;!&ndash;                            &ndash;&gt;-->
+    <!--  &lt;!&ndash;        ACTION FUNCTIONS    &ndash;&gt;-->
+    <!--  &lt;!&ndash;                            &ndash;&gt;-->
+    <!--  <apex:actionFunction name="touchCard_Apex" action="{!touchCard}" rerender="frm">-->
+    <!--    <apex:param name="cardId" assignTo="{!touchedCardId}" value=""/>-->
+    <!--  </apex:actionFunction>-->
+    <!--  <apex:actionFunction name="refreshAllObjects_Apex" action="{!refreshScreen}" reRender="frm"/>-->
+    <!--  <apex:actionFunction name="createNewGame_Apex" action="{!createNewGame}" reRender="frm">-->
+    <!--    <apex:param name="newGameCode" assignTo="{!newGameCode}" value=""/>-->
+    <!--  </apex:actionFunction>-->
+    <!--  <apex:actionFunction name="checkSpymasterCode_Apex" action="{!checkSpymasterCode}" rerender="frm">-->
+    <!--    <apex:param name="enteredCode" assignTo="{!enteredCode}" value=""/>-->
+    <!--  </apex:actionFunction>-->
+    <!--  <apex:actionFunction name="exitSpymasterMode" action="{!exitSpymasterMode}" rerender="frm"/>-->
+    <!--  <apex:actionFunction name="searchViaInterface_Apex" action="{!searchViaInterface}" rerender="frm">-->
+    <!--    <apex:param name="inputSessionName" assignTo="{!inputSessionName}" value=""/>-->
+    <!--  </apex:actionFunction>-->
+    <!--  <apex:actionFunction name="createNewSession" action="{!createNewSession}" rerender="frm">-->
+    <!--    <apex:param name="imageSetCode" assignTo="{!imageSetCode}" value=""/>-->
+    <!--  </apex:actionFunction>-->
+    <!--  <apex:actionFunction name="createNewPlayer_Apex" action="{!createNewPlayer}" rerender="frm" oncomplete="showPlayerResult('{!playerResult}')">-->
+    <!--    <apex:param name="newPlayerName" assignTo="{!playerNameInput}" value=""/>-->
+    <!--  </apex:actionFunction>-->
+    <!--  <apex:actionFunction name="findPlayer_Apex" action="{!findPlayer}" rerender="frm" oncomplete="showPlayerResult('{!playerResult}')">-->
+    <!--    <apex:param name="findPlayerName" assignTo="{!playerNameInput}" value=""/>-->
+    <!--  </apex:actionFunction>-->
+    <!--  <apex:actionFunction name="changeTeam_Apex" action="{!changeTeam}" rerender="frm"/>-->
+    <!--  <apex:actionFunction name="leaveRoom_Apex" action="{!leaveRoom}" rerender="frm"/>-->
+    <!--  <apex:actionFunction name="toggleSpymaster_Apex" action="{!toggleSpymaster}" rerender="frm"/>-->
+    <!--  <apex:actionFunction name="resetCards_Apex" action="{!resetCards}" rerender="frm"/>-->
+
+    <div id="game_container" class="game_container">
+        <div class="sidebar_board">
+            <div class="sidebar">
+                {#  <image styleClass="logo_image" url="{!$Resource.COVIDNamesLogo}"></image> #}
+                <div class="sidebar_content {!gameState}">
+                    <h1>Room code:&nbsp;</h1>
+                    <h1 style="text-transform:uppercase">{!session.Code__c}</h1>
+                    <div class="sidebar_info {!game.Color__c}"
+                         style="{# display:{!IF(game.Id != NULL,'flex','none')} #}">
+                        <h1 style="text-align:center; width:100%">{!Game.Color__c} goes first</h1>
+                    </div>
+                    <div class="sidebar_info" style="{# display:{!IF(game.Id != NULL,'flex','none')} #}">
+                        <div class="cards_remaining">
+                            <h1 class="remain_blue">{!blueCardsRemaining}</h1>
+                            <h1 class="remain_red">{!redCardsRemaining}</h1>
+                        </div>
+                    </div>
+                    <button
+                            id="new_game_btn"
+                            type="button"
+                            onclick="showPopup('new_game_popup')"
+                            class="sidebar_button new_game {!IF(demoMode, 'demo_disabled', '')}">
+                        New Game
+                    </button>
+                    <button
+                            id="leave_room_btn"
+                            type="button"
+                            onclick="showPopup('leave_room_popup')"
+                            class="sidebar_button nope {!IF(demoMode, 'demo_disabled', '')}">
+                        Leave Room
+                    </button>
+                </div>
+            </div>
+            <div class="board {!gameState}">
+                {# <:repeat id="card_repeat" value="{!gameCards}" var="card"> #}
+                <div class="button-div">
+                    <button
+                            type="button"
+                            class="cardDefault {!card.Assigned_Color__c} {!card.Revealed__c} {!viewMode}"
+                            name="{!card.Id}"
+                            onclick="revealColor(this)"></button>
+                    <img
+                            id="card-img-{!card.Id}"
+                            src="{# {!IF(card.Image__c != null, URLFOR($Resource[card.Image__c]),"")} #}"
+                            alt="{!card.Image__c}"
+                            class="card-image {!card.Revealed__c}"/>
+                    <span
+                            id="card-overlay-{!card.Id}"
+                            class="card-overlay {!card.Revealed__c} {!card.Assigned_Color__c}-overlay"
+                            onmouseenter="{# {!IF(card.Revealed__c == "Revealed","showName(this)","")} #}"
+                            onmouseleave="{# {!IF(card.Revealed__c == "Revealed","hideName(this)","")} #}">
+                  </span>
+                    <span
+                            id="card-name-{!card.Id}"
+                            class="card-name {!card.Revealed__c}">
+                      {!card.Name}
+                  </span>
+                </div>
+                {# </:repeat>  #}
+            </div>
+            <div class="login {!gameState}">
+                <h1>Hello, welcome to COVIDNames. Please go wash your hands!</h1><br/><br/><br/>
+                <h1>Enter an existing player name:</h1><input type="text" id="find_player_name"
+                                                              onkeyup="checkEnter(event, this)"
+                                                              onkeydown="return (event.keyCode!=13);"/>
+                <button type="button" id="find_player_button" class="landing_button" onclick="findPlayer()">Search
+                </button>
+                <br/><br/><br/>
+                <h1>Or, create a new player:</h1><input type="text" id="new_player_name"
+                                                        onkeyup="checkEnter(event, this)"
+                                                        onkeydown="return (event.keyCode!=13);"/>
+                <button type="button" id="new_player_button" class="landing_button" onclick="createNewPlayer()">Create
+                </button>
+                <br/><br/><br/>
+                <script>
+                    document.getElementById("find_player_name").select();
+                </script>
+            </div>
+            <div class="landing {!gameState}">
+                <h1>Join a room (the code will be two random four-letter words):</h1><br/>
+                <input id="code_1" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
+                <input id="code_2" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
+                <input id="code_3" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
+                <input id="code_4" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"
+                       style="margin-right:10px"/>
+                <input id="code_5" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
+                <input id="code_6" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
+                <input id="code_7" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"/>
+                <input id="code_8" maxlength="1" class="single_letter" onkeyup="autotab(event, this)"
+                       style="margin-right:10px"/>
+
+                <button type="button" id="search_button" class="landing_button" onclick="searchSession()"
+                        style="margin-bottom:70px">Search
+                </button>
+                <br/>
+
+                <h1>Or, create a new room:</h1>
+                <button type="button" class="landing_button"
+                        onclick="createNewSession(document.getElementById('image_set_code').value)"
+                        style="margin-bottom:10px">New Room
+                </button>
+                <br/>
+
+                <h1>For custom images, enter code here:</h1>
+                <input type="text" id="image_set_code" onkeyup="checkEnter(event, this)"
+                       onkeydown="return (event.keyCode!=13);"/>
+
+                <script>
+                    document.getElementById("code_1").select();
+                </script>
+            </div>
+            <!--Player panel-->
+            <div id="player_sidebar" class="player_sidebar {!gameState}">
+                <h1 style="margin-bottom:6px">Players:</h1><br/>
+                <p class="header_style" style="font-style:italic; max-width:200px; font-size:12px; margin-bottom:20px;
+                        {# {!IF(demoMode, 'display:none','')} #}">
+                    You are randomly assigned to a team when you join a room.
+                    Click the colored circle next to your name to switch teams.</p>
+                <!--        <apex:repeat value="{!session.Players__r}" var="player_var">-->
+                <!--          <div-->
+                <!--                  id="player_badge_{!player_var.Id}"-->
+                <!--                  class="player_badge {!player_var.Team__c}"-->
+                <!--                  name="player_badge"-->
+                <!--                  style="{!IF(player_var.Id == player.Id, 'background-color: var(&#45;&#45;aged-ivory)','')}">-->
+
+                <!--            <div id="circle_{!player_var.Id}" class="player_color_circle {!player_var.Team__c}" onclick="changeTeam(this, '{!player_var.Id}', '{!player.Id}')"/>-->
+                <!--            <h1>{!player_var.Name}</h1>-->
+                <!--            <img class="spymaster_image" style="{!IF(player_var.isSpymaster__c = true,'display:auto','display:none')}" src="{!$Resource.spymaster}"/>-->
+                <!--          </div>-->
+                <!--        </apex:repeat>-->
+                <div class="demo-panel" style="{# {!IF(demoMode, 'display:block', 'display:none')} #}">
+                    <h1 class="demo_header">Demo Mode</h1><br/>
+                    <p class="header_style"
+                       style="font-style:italic; max-width:200px; font-size:12px; margin-bottom:10px;">
+                        Created by Matt Miller during lockdown before <a href="https://codenames.game/" target="_blank">the
+                        real game</a> had an online version. Feel free to click on cards as you please. <br/><br/>Contact:
+                        matthew dot smith dot miller at gmail.
+                    </p>
+                    <button type="button" id="demo_spymaster_button" class="demo_button" onclick="demo_SpymasterView()">
+                        Spymaster<br/>On/Off
+                    </button>
+                    <button type="button" id="demo_reset_button" class="demo_button btn_moroccan_mint"
+                            onclick="demo_ResetCards()">Reset<br/>Cards
+                    </button>
+                    <button type="button" id="demo_home_button" class="demo_button btn_sage" onclick="demo_HomePage()">
+                        Home<br/>Page
+                    </button>
+                    <br/><br/>
+                    Code: <a href="https://github.com/matthew-smith-miller/covidnames" target="_blank">GitHub</a>
+
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
 
 {% block footer_scripts %}
-<script src="{% static 'js/main.js' %}"></script>
-<script>document.getElementById("code_1").select();</script>
+    <script src="{% static 'js/main.js' %}"></script>
+    <script>document.getElementById("code_1").select();</script>
 {% endblock %}
