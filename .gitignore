@@ -1,0 +1,8 @@
+.env
+.idea/
+.coverage
+/htmlcov/
+/covidnamesgame/.coverage
+/covidnamesgame/htmlcov/
+/covidnamesgame/static/node_modules/
+/venv/
