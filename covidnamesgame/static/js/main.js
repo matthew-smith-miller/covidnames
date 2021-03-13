@@ -1,4 +1,4 @@
-refreshInterval = setInterval(refreshCards, 2000);
+//refreshInterval = setInterval(refreshCards, 2000);
 
 function refreshCards() {
     if (document.getElementById("game_state").value == "display_game") {
@@ -12,12 +12,36 @@ function disableButtons(demoMode) {
     }
 }
 function findPlayer() {
-    input = document.getElementById("find_player_name").value;
-    if (input != "") {
-        findPlayer_Apex(input);
+    let input = document.getElementById("find_player_name").value;
+    if (input !== "") {
+        // findPlayer_Apex(input);
+        let csrftoken = getCookie('csrftoken')
+        let response = fetch("find-player/", {
+            method: 'GET',
+            headers: { 'Accept': 'application/json, text/plain, */*',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+            'player-name': input},
+        })
+        console.log(response)
     } else {
         alert("Please enter a name");
     }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break
+            }
+        }
+    }
+    return cookieValue;
 }
 function createNewPlayer() {
     input = document.getElementById("new_player_name").value;

@@ -16,9 +16,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+from game import views
+
 admin.site.site_header = 'Covidnames Administration'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('game.urls')),
+    path('find-player/', views.find_player, name="find-player")
 ]
